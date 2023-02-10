@@ -8,6 +8,6 @@ const userSchema = new mongoose.Schema({
   age: String,
 });
 
-const UserModel = mongoose.model("user", userSchema);
+const UserModel = mongoose.model("user", userSchema); // mongoDB will pluralize string and use it as COLLECTION NAME
 
 module.exports = UserModel;

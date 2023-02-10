@@ -5,6 +5,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const MONGO_URI = "mongodb://localhost:27017/mvc-intro-db";
 
+// ONLY CONNNECTING TO CLUSTER, NOT CREATING DB
 mongoose
   .connect(MONGO_URI)
   .then(() => {
@@ -14,9 +15,22 @@ mongoose
     console.log(err);
   });
 
+const UserModel = require("./models/User.model");
+
 // Handles http requests (express is node js framework)
 const express = require("express");
 const app = express();
+
+app.get("/about", (req, res) => {
+  // ACCESSS TO DB and send data to about.hbs
+  UserModel.find()
+    .then((response) => {
+      res.render("about.hbs", {
+        users: response,
+      });
+    })
+    .then((err) => console.log(err));
+});
 
 // Handles the handlebars
 const hbs = require("hbs");
