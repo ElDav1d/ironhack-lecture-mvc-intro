@@ -21,17 +21,6 @@ const UserModel = require("./models/User.model");
 const express = require("express");
 const app = express();
 
-app.get("/about", (req, res) => {
-  // ACCESSS TO DB and send data to about.hbs
-  UserModel.find()
-    .then((response) => {
-      res.render("about.hbs", {
-        users: response,
-      });
-    })
-    .then((err) => console.log(err));
-});
-
 // Handles the handlebars
 const hbs = require("hbs");
 
@@ -39,6 +28,14 @@ const hbs = require("hbs");
 app.use(express.static("public"));
 app.set("view engine", "hbs");
 app.set("views", __dirname + "/views/");
+
+// MORGAN middleware
+// Each client request fires log with HTTP method, response Status and Time
+const logger = require("morgan");
+app.use(logger("dev"));
+
+const favicon = require("serve-favicon");
+app.use(favicon(__dirname + "/public/images/favicon.ico"));
 
 // Local Variables
 // TODO
@@ -48,8 +45,20 @@ app.get("/", (req, res) => {
   res.render("home.hbs");
 });
 
-app.get("/about", (req, res) => {
-  res.render("about.hbs");
+app.get("/about", (req, res, next) => {
+  // ACCESSS TO DB and send data to about.hbs
+  UserModel.find()
+    .then((response) => {
+      console.log("about");
+      res.render("about.hbs", {
+        users: response,
+      });
+    })
+    .then(
+      (error) => {
+        next(error);
+      } // got to 500 handler (NO ARGUMENTS =  NEXT ROUTE)
+    );
 });
 
 app.get("/my-hobbies", (req, res) => {
@@ -57,7 +66,18 @@ app.get("/my-hobbies", (req, res) => {
 });
 
 // To handle errors.
+// allways at END OF ALL CHECKS
 // TODO
+app.use((req, res) => {
+  // 404
+  res.status(404).render("errors/not-found.hbs"); // not throwing error, since THIS IS A FOUND RESOURCE!!!
+});
+
+app.use((err, req, res, next) => {
+  // 500 server errors
+  console.log(new Error(err)); // throw is NOT for this flow because it RETURNS
+  res.status(500).render("errors/server-error.hbs");
+});
 
 // Sets the PORT for our app to have access to it. If no env has been set, we hard code it to 3000
 const PORT = process.env.PORT;
